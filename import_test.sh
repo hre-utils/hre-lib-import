@@ -2,4 +2,4 @@
 
 source import.sh
 
-.import mk-conf.sh asdfa.sh
+.import --verbose mk-node.sh mk-conf.sh
