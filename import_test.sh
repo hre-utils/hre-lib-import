@@ -2,4 +2,16 @@
 
 source import.sh
 
-.import --verbose mk-node.sh mk-conf.sh
+LIBDIR='./lib'
+
+declare -a params=(
+   #--verbose
+   --deps
+         takes_passdown.sh
+   --optional
+         doesnt-exist.sh
+   --passdown
+         ONE,TWO,THREE
+)
+
+.import "${params[@]}"
