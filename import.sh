@@ -1,7 +1,14 @@
 #!/bin/bash
-# Better bash `source` function.
-# Pulls either from a globally set $LIBDIR variable, else looks for executable
-# file in $PATH.
+# Better bash `source` function. Pulls either from a globally set $LIBDIR
+# variable, else looks for executable file in $PATH.
+#
+# Currently am specifically passing the --msg's as arguements to each individual
+# file's __init__ funct. This could certainly more easily be easier done via a
+# global variable, but the long and short of it is... I didn't want to. Feels
+# more 'right' to have it be an actual param that's passed down, as it would be
+# in a traditional language. There is the potential to which we can more easily
+# handle these 'scoped' msgs differently, which would be more difficult with a
+# single global variable. But who knows.
 
 #──────────────────────────────────( prereqs )──────────────────────────────────
 # Necessary for a bit more introspection:
@@ -11,25 +18,32 @@ shopt -s extdebug
 # Verification if we've sourced this in other scripts. Name is standardized.
 # e.g., filename 'mk-conf.sh' --> '__source_mk_conf__=true'
 __fname__="$( basename "${BASH_SOURCE[0]%.*}" )"
-declare "__source_${__fname__//[^[:alnum:]]/_}__"=true
+__file__="${__fname__//[^[:alnum:]]/_}"
+
+declare "__source_${__file__}__"=true
 
 #────────────────────────────────( define self )────────────────────────────────
 # Script local global variables. Allows each program to have its own PROGDIR
-# wout collisions.
-declare -A "__${__fname__//[^[:alnum]]/_}__"
-declare -n self="__${__fname__//[^[:alnum]]/_}__"
+# wout collisions. Dictionary id dynamically named after this filename, with a
+# small & consistent number of transformations:
+#  1. The final suffix is stripped
+#  2. All non-'word' characters are converted to '_'
+declare -A "__${__file__}__"
+declare -n self="__${__file__}__"
 
-self[progdir]=$( cd $(dirname "${BASH_SOURCE[0]}") ; pwd )
-self[libdir]="${self[progdir]}/lib"
-self[verbose]=false
-self[fname]="$__fname__"
+self=(
+   [progdir]=$( cd $(dirname "${BASH_SOURCE[0]}") ; pwd )
+   [fname]="$__fname__"
+   [verbose]=false
+)
 
 #─────────────────────────────────( functions )─────────────────────────────────
 function .import {
-   declare lopt passdown
+   declare lopt msg
    declare -a dependencies optional
 
-   # Access global self-dict...
+   # Access global self-dict... need to first re-calculate the transformed name
+   # of the file: strip suffix, replace non-word characters.
    local self="$( basename "${BASH_SOURCE[0]%.*}" )"
    local -n self="__${self//[^[:alnum]]/_}__"
 
@@ -42,8 +56,8 @@ function .import {
          -o|--optional)
                shift ; lopt=optional ;;
 
-         -p|--passdown)
-               shift ; passdown="$1" ; shift ;;
+         -m|--msg)
+               shift ; msg="$1" ; shift ;;
 
          -v|--verbose)
                shift ; self[verbose]=true ;;
@@ -107,22 +121,14 @@ function .import {
       [[ -n "${!dep_sourcename}" ]] && continue
 
       #────────────────────────────( source )───────────────────────────────────
-      source "$path" ${passdown:+--passdown} "${passdown}"
-      echo "Sourced: $path ${passdown:+--passdown} ${passdown}"
+      source "$path"
 
       # Ensure we're sourcing the __init__ function from the file we've just
       # sourced.
       read fn lineno file < <(declare -F '__init__')
       if [[ "$file" == "$path" ]] ; then
-         __init__ ; unset __init__
+         __init__ "${msg}" ; unset __init__
       fi
-
-      # CURRENT;THINKIES;TODO;
-      # This is really close to actually working, but not quite. Maybe each
-      # function upon creation populates a uniquely generated dictionary
-      # with the args that were passed to it? Then the init function looks
-      # at those args? Not sure if I like that approach. Need to sleep on
-      # this.
 
       ${self[verbose]} && echo "[${self[fname]}] sourcing: $path"
    done

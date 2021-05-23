@@ -10,7 +10,7 @@ declare -a params=(
          takes_passdown.sh
    --optional
          doesnt-exist.sh
-   --passdown
+   --msg
          ONE,TWO,THREE
 )
 
