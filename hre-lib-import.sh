@@ -44,8 +44,8 @@ function .import {
 
    # Access global self-dict... need to first re-calculate the transformed name
    # of the file: strip suffix, replace non-word characters.
-   local self="$( basename "${BASH_SOURCE[0]%.*}" )"
-   local -n self="__${self//[^[:alnum]]/_}__"
+   declare _self="$( basename "${BASH_SOURCE[0]%.*}" )"
+   declare -n self="__${_self//[^[:alnum:]]/_}__"
 
    # Argparse...
    while [[ $# -gt 0 ]] ; do
