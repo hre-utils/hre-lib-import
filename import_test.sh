@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source import.sh
+source hre-lib-import.sh
 
 LIBDIR='./lib'
 

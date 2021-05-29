@@ -80,6 +80,12 @@ function .import {
 
    # Check if required deps exist:
    for dep in "${dependencies[@]}" ; do
+      # Allows passing the file name itself, or the 'root' (not including the
+      # 'hre-lib-' prefix or the '.sh' suffix):
+      if [[ ! "$dep" =~ ^hre-lib.*\.sh$ ]] ; then
+         dep="hre-lib-${dep}.sh"
+      fi
+
       if [[ -e "${LIBDIR}/${dep}" ]] ; then
          path="${LIBDIR}/${dep}"
          found_deps+=( "$path" )
@@ -93,6 +99,10 @@ function .import {
 
    # Check if required deps exist:
    for dep in "${optional[@]}" ; do
+      if [[ ! "$dep" =~ ^hre-lib.*\.sh$ ]] ; then
+         dep="hre-lib-${dep}.sh"
+      fi
+
       if [[ -e "${LIBDIR}/${dep}" ]] ; then
          path="${LIBDIR}/${dep}"
          found_deps+=( "$path" )
