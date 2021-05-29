@@ -142,4 +142,8 @@ function .import {
 
       ${self[verbose]} && echo "[${self[fname]}] sourcing: $path"
    done
+
+   # Need an explicit return 0, else if self[verbose] is `false`, we return
+   # 1, whoopsies.
+   return 0
 }
